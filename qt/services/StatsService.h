@@ -8,6 +8,10 @@ struct StatsSummary {
     int totalFocusMinutesMonth{0};
     int stopwatchEventsWeek{0};
     int stopwatchEventsMonth{0};
+    int pomodoroMinutesWeek{0};
+    int pomodoroMinutesMonth{0};
+    int stopwatchMinutesWeek{0};
+    int stopwatchMinutesMonth{0};
 };
 
 class StatsService {

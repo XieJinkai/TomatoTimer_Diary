@@ -65,16 +65,25 @@ void DiaryTabPage::load(){
     const QString content = DiaryStore::load(user_, date_);
     editor_->clear(); images_.clear();
     const auto lines = content.split('\n');
+    QStringList recordLines; QStringList diaryLines; QStringList imageLines;
     for(const auto& line : lines){
         if(line.startsWith("[Image]")){
-            const QString path = line.mid(7);
-            if(!path.isEmpty()){
-                images_.append(path);
-                const QString url = QUrl::fromLocalFile(path).toString();
-                editor_->insertHtml(QString("<br><img src=\"%1\" style=\"max-width:100%;\"><br>").arg(url));
-            }
+            imageLines.append(line);
+        } else if(line.startsWith("[Pomodoro]") || line.startsWith("[Stopwatch]") || line.startsWith("[本日专注时长：") || line.startsWith("[专注事件：") || line.contains("专注时长：")){
+            recordLines.append(line);
         } else {
-            editor_->append(line);
+            diaryLines.append(line);
+        }
+    }
+    for(const auto& rl : recordLines){ editor_->append(rl); }
+    editor_->append("----------------------------------");
+    for(const auto& dl : diaryLines){ editor_->append(dl); }
+    for(const auto& il : imageLines){
+        const QString path = il.mid(7);
+        if(!path.isEmpty()){
+            images_.append(path);
+            const QString url = QUrl::fromLocalFile(path).toString();
+            editor_->insertHtml(QString("<br><img src=\"%1\" style=\"max-width:100%;\"><br>").arg(url));
         }
     }
 }

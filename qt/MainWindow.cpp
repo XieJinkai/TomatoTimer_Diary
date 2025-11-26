@@ -37,17 +37,11 @@ void MainWindow::setupUi(){
     tabs_->addTab(new SettingsSyncPage(this), QIcon(), "设置/同步");
 
     auto* tb = addToolBar("工具");
-    QAction* actCalendar = new QAction("打开日记", this);
     QAction* actLight = new QAction("日间主题", this);
     QAction* actDark = new QAction("夜间主题", this);
-    tb->addAction(actCalendar);
     tb->addSeparator();
     tb->addAction(actLight);
     tb->addAction(actDark);
-    connect(actCalendar, &QAction::triggered, this, [this]{
-        int idx = tabs_->indexOf(tabs_->findChild<DiaryTabPage*>());
-        if(idx>=0) tabs_->setCurrentIndex(idx);
-    });
     connect(actLight, &QAction::triggered, this, []{
         Theme::apply(Theme::Mode::Light);
         Theme::save(Theme::Mode::Light);

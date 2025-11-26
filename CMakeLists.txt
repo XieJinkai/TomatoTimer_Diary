@@ -41,11 +41,18 @@ add_executable(tomato_timer
   qt/services/DataStore.h qt/services/DataStore.cpp
   qt/services/StatsService.h qt/services/StatsService.cpp
   qt/services/SpeechToText.h qt/services/SpeechToText.cpp
+  qt/services/OcrService.h qt/services/OcrService.cpp
+  qt/services/PaddleInferOcr.h qt/services/PaddleInferOcr.cpp
   qt/ui/Theme.h qt/ui/Theme.cpp
+  qt/resources.qrc
+  qt/ui/ImageView.h qt/ui/ImageView.cpp
+  qt/ui/charts/BarChartWidget.h qt/ui/charts/BarChartWidget.cpp
+  qt/ui/charts/PieChartWidget.h qt/ui/charts/PieChartWidget.cpp
 )
 
-target_include_directories(tomato_timer PRIVATE qt qt/pages qt/services qt/windows qt/ui)
+target_include_directories(tomato_timer PRIVATE qt qt/pages qt/services qt/windows qt/ui qt/ui/charts ./include ./include/opencv2)
 target_link_libraries(tomato_timer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+
 
 if(HAVE_QT_MULTIMEDIA)
   target_link_libraries(tomato_timer PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
@@ -58,4 +65,16 @@ endif()
 
 if(WIN32)
   target_link_libraries(tomato_timer PRIVATE sapi)
+endif()
+
+# Link local OpenCV world library from ./include/lib without relying on system OpenCV
+set(OPENCV_LOCAL_LIB_DIR "${CMAKE_SOURCE_DIR}/include/lib")
+if(MSVC)
+  set(OPENCV_WORLD_RELEASE "${OPENCV_LOCAL_LIB_DIR}/opencv_world4120.lib")
+  set(OPENCV_WORLD_DEBUG   "${OPENCV_LOCAL_LIB_DIR}/opencv_world4120d.lib")
+  target_link_libraries(tomato_timer PRIVATE
+    $<$<CONFIG:Debug>:${OPENCV_WORLD_DEBUG}>
+    $<$<CONFIG:Release>:${OPENCV_WORLD_RELEASE}>
+  )
+  target_compile_definitions(tomato_timer PRIVATE WITH_OPENCV=1)
 endif()
