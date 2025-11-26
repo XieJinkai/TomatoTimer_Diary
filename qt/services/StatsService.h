@@ -16,5 +16,6 @@ struct StatsSummary {
 
 class StatsService {
 public:
+    // 汇总用户的周/月统计数据
     static StatsSummary summarize(const QString& user);
 };

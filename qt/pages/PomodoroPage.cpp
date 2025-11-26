@@ -31,7 +31,8 @@ void PomodoroPage::setupUi(){
     btnStart_ = new QPushButton("开始", this);
     btnPause_ = new QPushButton("暂停", this);
     btnResume_ = new QPushButton("继续", this);
-    auto* controls = new QHBoxLayout(); controls->addWidget(btnStart_); controls->addWidget(btnPause_); controls->addWidget(btnResume_);
+    btnEndEarly_ = new QPushButton("提前结束", this);
+    auto* controls = new QHBoxLayout(); controls->addWidget(btnStart_); controls->addWidget(btnPause_); controls->addWidget(btnResume_); controls->addWidget(btnEndEarly_);
     lay->addLayout(controls); lay->addStretch();
 
     timer_ = new QTimer(this); timer_->setInterval(1000);
@@ -39,6 +40,7 @@ void PomodoroPage::setupUi(){
     connect(btnStart_, &QPushButton::clicked, this, &PomodoroPage::start);
     connect(btnPause_, &QPushButton::clicked, this, &PomodoroPage::pause);
     connect(btnResume_, &QPushButton::clicked, this, &PomodoroPage::resume);
+    connect(btnEndEarly_, &QPushButton::clicked, this, &PomodoroPage::endEarly);
 }
 
 void PomodoroPage::start(){
@@ -121,4 +123,22 @@ void PomodoroPage::recordDone(int minutes){
     }
     kept.append(QString("[本日专注时长：%1]").arg(totalMin));
     DataStore::writeAll(DiaryStore::entryPath(u, d), kept.join("\n"));
+}
+
+void PomodoroPage::endEarly(){
+    if(!timer_) return;
+    if(!inRest_){
+        int focusedSec = focusMin_->value()*60 - remainingSec_;
+        if(focusedSec < 0) focusedSec = 0;
+        int minutes = (focusedSec + 59) / 60;
+        if(minutes > 0) recordDone(minutes);
+        inRest_ = true; remainingSec_ = restMin_->value()*60; timer_->start();
+    } else {
+        if(currentRound_ < count_->value()){
+            currentRound_++;
+            inRest_ = false; remainingSec_ = focusMin_->value()*60; timer_->start();
+        } else {
+            timer_->stop(); display_->setText("完成所有番茄");
+        }
+    }
 }
