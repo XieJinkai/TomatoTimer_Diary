@@ -1,4 +1,4 @@
-#include "StopwatchPage.h"
+﻿#include "StopwatchPage.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -31,7 +31,12 @@ void StopwatchPage::setupUi(){
 void StopwatchPage::start(){ timer_->start(); }
 void StopwatchPage::stop(){ timer_->stop(); record(); }
 void StopwatchPage::reset(){ timer_->stop(); elapsedSec_=0; display_->setText("00:00:00"); }
-void StopwatchPage::tick(){ elapsedSec_++; int h=elapsedSec_/3600; int m=(elapsedSec_%3600)/60; int s=elapsedSec_%60; display_->setText(QString("%1:%2:%3").arg(h,2,10,'0').arg(m,2,10,'0').arg(s,2,10,'0')); }
+void StopwatchPage::tick(){ 
+    elapsedSec_++; 
+    QTime time(0, 0, 0); 
+    time = time.addSecs(elapsedSec_); 
+    display_->setText(time.toString("hh:mm:ss")); 
+}
 
 void StopwatchPage::record(){
     if(!Session::instance().isLoggedIn()) return;

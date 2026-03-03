@@ -44,7 +44,6 @@ add_executable(tomato_timer
   qt/services/OcrService.h qt/services/OcrService.cpp
   qt/services/PaddleInferOcr.h qt/services/PaddleInferOcr.cpp
   qt/ui/Theme.h qt/ui/Theme.cpp
-  qt/resources.qrc
   qt/ui/ImageView.h qt/ui/ImageView.cpp
   qt/ui/charts/BarChartWidget.h qt/ui/charts/BarChartWidget.cpp
   qt/ui/charts/PieChartWidget.h qt/ui/charts/PieChartWidget.cpp
