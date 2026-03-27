@@ -19,7 +19,9 @@ void SettingsSyncPage::setupUi(){
     btnSync_ = new QPushButton("同步", this);
     info_ = new QLabel("选择目录后将用户数据复制到该目录。", this);
     auto* row = new QHBoxLayout(); row->addWidget(cloudDir_); row->addWidget(btnChoose_); row->addWidget(btnSync_);
-    lay->addLayout(row); lay->addWidget(info_); lay->addStretch();
+    lay->addLayout(row);
+    lay->addWidget(info_);
+    lay->addStretch();
 
     connect(btnChoose_, &QPushButton::clicked, this, &SettingsSyncPage::chooseCloud);
     connect(btnSync_, &QPushButton::clicked, this, &SettingsSyncPage::syncNow);

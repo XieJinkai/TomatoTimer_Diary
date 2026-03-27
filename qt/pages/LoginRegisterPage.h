@@ -12,13 +12,11 @@ signals:
     void loggedIn();
 private:
     QLineEdit* userEdit_{}; QLineEdit* passEdit_{}; QLabel* info_{};
-    QPushButton* btnRegister_{}; QPushButton* btnLogin_{}; QPushButton* btnLogout_{};
+    QPushButton* btnRegister_{}; QPushButton* btnLogin_{};
     // 初始化 UI
     void setupUi();
     // 注册新用户
     void onRegister();
     // 执行登录
     void onLogin();
-    // 注销当前用户
-    void onLogout();
 };

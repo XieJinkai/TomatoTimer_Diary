@@ -13,7 +13,9 @@ static QString lightCss(){
     QPushButton { background: #FFFFFF; border: 1px solid #E5E5E5; border-radius: 8px; padding: 8px 14px; }
     QPushButton:hover { border-color: #CFCFCF; }
     QPushButton:pressed { background: #F0F0F0; }
-    QLineEdit, QTextEdit { background: #FFFFFF; border: 1px solid #E5E5E5; border-radius: 8px; padding: 6px 10px; }
+    QLineEdit, QTextEdit, QSpinBox { background: #FFFFFF; border: 1px solid #E5E5E5; border-radius: 8px; padding: 6px 10px; }
+    QSpinBox::up-button, QSpinBox::down-button { width: 18px; border: none; background: transparent; }
+    QSpinBox::up-arrow, QSpinBox::down-arrow { width: 10px; height: 10px; }
     QComboBox { background: #FFFFFF; border: 1px solid #E5E5E5; border-radius: 8px; padding: 6px 34px 6px 10px; }
     QComboBox:hover { border-color: #CFCFCF; }
     QComboBox::drop-down { subcontrol-origin: padding; subcontrol-position: top right; width: 28px; border-left: 1px solid #E5E5E5; background: #F5F5F5; border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
@@ -44,7 +46,9 @@ static QString darkCss(){
     QPushButton { background: #202326; color: #E6E7E9; border: 1px solid #2C2F33; border-radius: 8px; padding: 8px 14px; }
     QPushButton:hover { border-color: #3A3E43; }
     QPushButton:pressed { background: #2A2D31; }
-    QLineEdit, QTextEdit { background: #23262A; color: #E6E7E9; border: 1px solid #2C2F33; border-radius: 8px; padding: 6px 10px; }
+    QLineEdit, QTextEdit, QSpinBox { background: #23262A; color: #E6E7E9; border: 1px solid #2C2F33; border-radius: 8px; padding: 6px 10px; }
+    QSpinBox::up-button, QSpinBox::down-button { width: 18px; border: none; background: transparent; }
+    QSpinBox::up-arrow, QSpinBox::down-arrow { width: 10px; height: 10px; }
     QComboBox { background: #23262A; color: #EDEFF2; border: 1px solid #3A3E43; border-radius: 8px; padding: 6px 34px 6px 10px; }
     QComboBox:hover { border-color: #4A4F55; }
     QComboBox::drop-down { subcontrol-origin: padding; subcontrol-position: top right; width: 28px; border-left: 1px solid #3A3E43; background: #E0E2E6; border-top-right-radius: 8px; border-bottom-right-radius: 8px; }

@@ -3,10 +3,13 @@
 #include <QWidget>
 #include <QIcon>
 #include "pages/LoginRegisterPage.h"
+#include "LoginWindow.h"
 #include "pages/PomodoroPage.h"
 #include "pages/StopwatchPage.h"
 #include <QToolBar>
 #include <QAction>
+#include <QWidget>
+#include <QSizePolicy>
 #include "windows/CalendarWindow.h"
 #include "ui/Theme.h"
 #include "pages/DiaryTabPage.h"
@@ -41,9 +44,14 @@ void MainWindow::setupUi(){
     auto* tb = addToolBar("工具");
     QAction* actLight = new QAction("日间主题", this);
     QAction* actDark = new QAction("夜间主题", this);
+    QAction* actLogout = new QAction("退出登录", this);
+    auto* spacer = new QWidget(this);
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     tb->addSeparator();
     tb->addAction(actLight);
     tb->addAction(actDark);
+    tb->addWidget(spacer);
+    tb->addAction(actLogout);
     connect(actLight, &QAction::triggered, this, []{
         Theme::apply(Theme::Mode::Light);
         Theme::save(Theme::Mode::Light);
@@ -51,5 +59,11 @@ void MainWindow::setupUi(){
     connect(actDark, &QAction::triggered, this, []{
         Theme::apply(Theme::Mode::Dark);
         Theme::save(Theme::Mode::Dark);
+    });
+    connect(actLogout, &QAction::triggered, this, [this]{
+        Session::instance().logout();
+        auto* login = new LoginWindow();
+        login->show();
+        close();
     });
 }
