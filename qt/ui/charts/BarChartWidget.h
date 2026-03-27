@@ -8,9 +8,12 @@ public:
     explicit BarChartWidget(QWidget* parent=nullptr);
     // 设置柱状图数据与纵轴标签
     void setBars(const QList<BarItem>& items, const QString& axisLabel="");
+signals:
+    void barClicked(const QString& label, double value);
 protected:
     // 绘制柱状图
     void paintEvent(QPaintEvent*) override;
+    void mousePressEvent(QMouseEvent* event) override;
 private:
     QList<BarItem> items_; QString axisLabel_{};
 };

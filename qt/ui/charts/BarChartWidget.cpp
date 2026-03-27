@@ -1,5 +1,6 @@
 #include "BarChartWidget.h"
 #include <QPainter>
+#include <QMouseEvent>
 
 BarChartWidget::BarChartWidget(QWidget* parent): QWidget(parent){ setMinimumHeight(240); }
 
@@ -22,4 +23,20 @@ void BarChartWidget::paintEvent(QPaintEvent*){
         x += bw + gap;
     }
     if(!axisLabel_.isEmpty()){ p.setPen(QPen(QColor("#666"))); p.drawText(int(area.left()), int(area.top())-8, axisLabel_); }
+}
+
+void BarChartWidget::mousePressEvent(QMouseEvent* event){
+    const int margin = 30; QRectF area(margin, margin, width()-2*margin, height()-2*margin);
+    double maxv = 0; for(const auto& it: items_) maxv = std::max(maxv, it.value); if(maxv<=0) maxv=1;
+    int n = items_.size(); double bw = area.width() / std::max(1,n) * 0.6; double gap = area.width() / std::max(1,n) * 0.4;
+    double x = area.left();
+    for(const auto& it : items_){
+        double h = area.height() * (it.value / maxv);
+        QRectF bar(x + gap*0.5, area.bottom()-h, bw, h);
+        if(bar.contains(event->pos())){
+            emit barClicked(it.label, it.value);
+            break;
+        }
+        x += bw + gap;
+    }
 }

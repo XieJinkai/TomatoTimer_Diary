@@ -1,6 +1,9 @@
 #include "PieChartWidget.h"
 #include <QPainter>
 #include <QPaintEvent>
+#include <QMouseEvent>
+#include <QtMath>
+#include <cmath>
 
 PieChartWidget::PieChartWidget(QWidget* parent): QWidget(parent){ setMinimumHeight(240); }
 
@@ -23,5 +26,28 @@ void PieChartWidget::paintEvent(QPaintEvent*){
         p.drawRect(legendX, legendY, 14, 14); p.setPen(QPen(QColor("#666"))); p.setBrush(Qt::NoBrush);
         p.drawText(legendX+20, legendY+12, QString("%1: %2").arg(labels_[i]).arg(values_[i]));
         legendY += 22;
+    }
+}
+
+void PieChartWidget::mousePressEvent(QMouseEvent* event){
+    QRectF rect(20, 20, height()-40, height()-40);
+    QPointF center = rect.center();
+    double radius = rect.width() * 0.5;
+    const QPointF pos = event->pos();
+    const double dx = pos.x() - center.x();
+    const double dy = pos.y() - center.y();
+    const double dist = std::sqrt(dx*dx + dy*dy);
+    if(dist > radius) return;
+    double total = 0; for(double v: values_) total += v; if(total <= 0) total = 1;
+    double angle = qRadiansToDegrees(std::atan2(-dy, dx));
+    if(angle < 0) angle += 360.0;
+    double start = 0;
+    for(int i=0;i<values_.size() && i<labels_.size();++i){
+        double span = 360.0 * (values_[i] / total);
+        if(angle >= start && angle < start + span){
+            emit sliceClicked(labels_[i], values_[i]);
+            break;
+        }
+        start += span;
     }
 }
