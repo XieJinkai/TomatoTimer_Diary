@@ -10,6 +10,8 @@ void ImageView::clearPoints(){ pts_.clear(); update(); }
 
 QVector<QPointF> ImageView::points() const{ QVector<QPointF> res; for(const auto& p: pts_){ QPointF rel(p.x()-pixRect_.x(), p.y()-pixRect_.y()); QPointF imgp(rel.x()/scale_, rel.y()/scale_); res.append(imgp); } return res; }
 
-void ImageView::mousePressEvent(QMouseEvent* ev){ if(!pixRect_.contains(ev->pos())) return; if(pts_.size()<4){ pts_.append(ev->pos()); update(); } }
+void ImageView::setPointSelectionEnabled(bool enabled){ pointSelectionEnabled_ = enabled; if(!enabled) clearPoints(); }
+
+void ImageView::mousePressEvent(QMouseEvent* ev){ if(!pointSelectionEnabled_) return; if(!pixRect_.contains(ev->pos())) return; if(pts_.size()<4){ pts_.append(ev->pos()); update(); } }
 
 void ImageView::paintEvent(QPaintEvent* ev){ QLabel::paintEvent(ev); if(img_.isNull()) return; QPainter p(this); p.setRenderHint(QPainter::Antialiasing); for(int i=0;i<pts_.size();++i){ QPointF pf = pts_[i]; QPoint pt = pf.toPoint(); p.setPen(QPen(Qt::red,2)); p.setBrush(QBrush(QColor(255,77,79))); p.drawEllipse(pt,5,5); if(i>0){ QPointF pprev = pts_[i-1]; p.drawLine(pprev.toPoint(), pt); } } }

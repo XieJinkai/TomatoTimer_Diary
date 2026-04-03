@@ -18,9 +18,14 @@
 #include <QDate>
 #include "services/Session.h"
 #include "pages/StatsPage.h"
-#include "pages/AccountingPage.h"
 #include "pages/ImageToolsPage.h"
 #include "pages/SettingsSyncPage.h"
+#if __has_include("pages/AccountingPage.h")
+#include "pages/AccountingPage.h"
+#define WITH_ACCOUNTING_PAGE 1
+#else
+#define WITH_ACCOUNTING_PAGE 0
+#endif
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setupUi();
@@ -35,7 +40,9 @@ void MainWindow::setupUi(){
     tabs_->addTab(new PomodoroPage(this), QIcon(), "番茄钟");
     tabs_->addTab(new StopwatchPage(this), QIcon(), "正向计时");
     tabs_->addTab(new StatsPage(this), QIcon(), "数据统计");
+#if WITH_ACCOUNTING_PAGE
     tabs_->addTab(new AccountingPage(this), QIcon(), "记账");
+#endif
     auto* diaryTab = new DiaryTabPage(this);
     tabs_->addTab(diaryTab, QIcon(), "日记");
     tabs_->addTab(new ImageToolsPage(this), QIcon(), "图片处理");

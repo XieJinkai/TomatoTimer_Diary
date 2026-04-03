@@ -12,6 +12,7 @@ public:
     void clearPoints();
     // 获取选中的四点（图像坐标）
     QVector<QPointF> points() const;
+    void setPointSelectionEnabled(bool enabled);
 protected:
     // 处理点选事件（最多四点）
     void mousePressEvent(QMouseEvent* ev) override;
@@ -19,4 +20,5 @@ protected:
     void paintEvent(QPaintEvent* ev) override;
 private:
     QImage img_{}; QVector<QPointF> pts_{}; QRect pixRect_{}; double scale_{1.0};
+    bool pointSelectionEnabled_{false};
 };

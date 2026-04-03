@@ -1,6 +1,6 @@
 #pragma once
 #include <QWidget>
-class QLabel; class QPushButton; class ImageView;
+class QLabel; class QPushButton; class ImageView; class QPlainTextEdit;
 
 class ImageToolsPage : public QWidget {
     Q_OBJECT
@@ -8,9 +8,11 @@ public:
     // 创建图片处理页面
     explicit ImageToolsPage(QWidget* parent=nullptr);
 private:
-    QLabel* info_{}; ImageView* view_{}; QLabel* ocrOut_{};
+    QLabel* info_{}; ImageView* view_{}; QPlainTextEdit* ocrOut_{};
     QPushButton* btnOpen_{}; QPushButton* btnAdjust_{}; QPushButton* btnOcr_{}; QPushButton* btnSave_{};
     QString currentPath_{}; QImage currentImage_{};
+    bool ocrBusy_{false};
+    bool adjusting_{false};
     // 初始化 UI
     void setupUi();
     // 打开图片

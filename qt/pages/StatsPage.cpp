@@ -6,9 +6,30 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QMessageBox>
+#include <QMap>
 #include "../services/Session.h"
 #include "../services/StatsService.h"
+#if __has_include("../services/AccountingStatsService.h")
 #include "../services/AccountingStatsService.h"
+#define WITH_ACCOUNTING_STATS 1
+#else
+#define WITH_ACCOUNTING_STATS 0
+#include <QDateTime>
+struct AccountingRecord { QDateTime time{}; QString item{}; double amount{0.0}; QString type{}; };
+enum class AccountingRange { Day, Week, Month, Year };
+struct AccountingSummary {
+    bool hasRecord{false};
+    double total{0.0};
+    double average{0.0};
+    AccountingRecord maxRecord{};
+    AccountingRecord minRecord{};
+};
+namespace AccountingStatsService {
+QMap<QString, double> sumByType(const QString&, AccountingRange){ return {}; }
+AccountingSummary summarize(const QString&, AccountingRange){ return {}; }
+QList<AccountingRecord> recordsByType(const QString&, AccountingRange, const QString&){ return {}; }
+}
+#endif
 #include "../ui/charts/PieChartWidget.h"
 #include "../ui/charts/BarChartWidget.h"
 

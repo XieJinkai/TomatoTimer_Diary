@@ -8,9 +8,10 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Test QUIET)
+find_package(Python3 COMPONENTS Interpreter QUIET)
 
 # Optional modules (guarded)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Multimedia QUIET)
@@ -35,15 +36,12 @@ add_executable(tomato_timer
   qt/pages/DiaryPage.h qt/pages/DiaryPage.cpp
   qt/pages/DiaryTabPage.h qt/pages/DiaryTabPage.cpp
   qt/pages/StatsPage.h qt/pages/StatsPage.cpp
-  qt/pages/AccountingPage.h qt/pages/AccountingPage.cpp
   qt/pages/ImageToolsPage.h qt/pages/ImageToolsPage.cpp
   qt/pages/SettingsSyncPage.h qt/pages/SettingsSyncPage.cpp
   qt/services/Session.h qt/services/Session.cpp
   qt/services/DiaryStore.h qt/services/DiaryStore.cpp
   qt/services/DataStore.h qt/services/DataStore.cpp
   qt/services/StatsService.h qt/services/StatsService.cpp
-  qt/services/AccountingStore.h qt/services/AccountingStore.cpp
-  qt/services/AccountingStatsService.h qt/services/AccountingStatsService.cpp
   qt/services/SpeechToText.h qt/services/SpeechToText.cpp
   qt/services/OcrService.h qt/services/OcrService.cpp
   qt/services/PaddleInferOcr.h qt/services/PaddleInferOcr.cpp
@@ -54,7 +52,7 @@ add_executable(tomato_timer
 )
 
 target_include_directories(tomato_timer PRIVATE qt qt/pages qt/services qt/windows qt/ui qt/ui/charts ./include ./include/opencv2)
-target_link_libraries(tomato_timer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(tomato_timer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network)
 
 
 if(HAVE_QT_MULTIMEDIA)
@@ -70,6 +68,40 @@ if(WIN32)
   target_link_libraries(tomato_timer PRIVATE sapi)
 endif()
 
+set(OCR_SCRIPT_PATH "${CMAKE_SOURCE_DIR}/include/bin/ocr_paddle.py")
+set(OCR_PYTHON_EXE "")
+if(Python3_Interpreter_FOUND)
+  set(OCR_PYTHON_EXE "${Python3_EXECUTABLE}")
+endif()
+if(WIN32 AND OCR_PYTHON_EXE STREQUAL "")
+  set(OCR_WIN_PYTHON "C:/Users/19231/AppData/Local/Programs/Python/Python313/python.exe")
+  if(EXISTS "${OCR_WIN_PYTHON}")
+    set(OCR_PYTHON_EXE "${OCR_WIN_PYTHON}")
+  endif()
+endif()
+set(OCR_PYTHON_SITE_PACKAGES "")
+if(WIN32)
+  set(OCR_WIN_USER_SITE_PACKAGES "C:/Users/19231/AppData/Roaming/Python/Python313/site-packages")
+  set(OCR_WIN_SITE_PACKAGES "C:/Users/19231/AppData/Local/Programs/Python/Python313/Lib/site-packages")
+  if(EXISTS "${OCR_WIN_USER_SITE_PACKAGES}")
+    set(OCR_PYTHON_SITE_PACKAGES "${OCR_WIN_USER_SITE_PACKAGES}")
+  elseif(EXISTS "${OCR_WIN_SITE_PACKAGES}")
+    set(OCR_PYTHON_SITE_PACKAGES "${OCR_WIN_SITE_PACKAGES}")
+  endif()
+endif()
+if(EXISTS "${OCR_SCRIPT_PATH}")
+  file(TO_CMAKE_PATH "${OCR_SCRIPT_PATH}" OCR_SCRIPT_PATH)
+  target_compile_definitions(tomato_timer PRIVATE OCR_DEFAULT_PADDLE_SCRIPT="${OCR_SCRIPT_PATH}")
+endif()
+if(NOT OCR_PYTHON_EXE STREQUAL "")
+  file(TO_CMAKE_PATH "${OCR_PYTHON_EXE}" OCR_PYTHON_EXE)
+  target_compile_definitions(tomato_timer PRIVATE OCR_DEFAULT_PYTHON_EXE="${OCR_PYTHON_EXE}")
+endif()
+if(NOT OCR_PYTHON_SITE_PACKAGES STREQUAL "")
+  file(TO_CMAKE_PATH "${OCR_PYTHON_SITE_PACKAGES}" OCR_PYTHON_SITE_PACKAGES)
+  target_compile_definitions(tomato_timer PRIVATE OCR_DEFAULT_PYTHON_SITE_PACKAGES="${OCR_PYTHON_SITE_PACKAGES}")
+endif()
+
 # Link local OpenCV world library from ./include/lib without relying on system OpenCV
 set(OPENCV_LOCAL_LIB_DIR "${CMAKE_SOURCE_DIR}/include/lib")
 if(MSVC)
@@ -82,7 +114,7 @@ if(MSVC)
   target_compile_definitions(tomato_timer PRIVATE WITH_OPENCV=1)
 endif()
 
-if(TARGET Qt${QT_VERSION_MAJOR}::Test)
+if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/AccountingPageTests.cpp" AND EXISTS "${CMAKE_SOURCE_DIR}/qt/pages/AccountingPage.cpp" AND EXISTS "${CMAKE_SOURCE_DIR}/qt/services/AccountingStore.cpp")
   enable_testing()
   add_executable(accounting_page_tests
     qt/tests/AccountingPageTests.cpp
