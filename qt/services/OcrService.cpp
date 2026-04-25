@@ -23,8 +23,33 @@
 #include <algorithm>
 #include "PaddleInferOcr.h"
 
-static QString baiduApiKey(){ return qEnvironmentVariable("BAIDU_OCR_API_KEY"); }
-static QString baiduSecretKey(){ return qEnvironmentVariable("BAIDU_OCR_SECRET_KEY"); }
+static QJsonObject baiduOcrConfig(){
+    const QString configPath = QDir::fromNativeSeparators(
+        QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath("ocr_config.json")
+    );
+    QFile file(configPath);
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        return {};
+    }
+    const auto doc = QJsonDocument::fromJson(file.readAll());
+    if(!doc.isObject()){
+        return {};
+    }
+    return doc.object();
+}
+
+static QString baiduApiKey(){
+    const QString fileValue = baiduOcrConfig().value("api_key").toString().trimmed();
+    if(!fileValue.isEmpty()) return fileValue;
+    return qEnvironmentVariable("BAIDU_OCR_API_KEY").trimmed();
+}
+
+static QString baiduSecretKey(){
+    const QString fileValue = baiduOcrConfig().value("secret_key").toString().trimmed();
+    if(!fileValue.isEmpty()) return fileValue;
+    return qEnvironmentVariable("BAIDU_OCR_SECRET_KEY").trimmed();
+}
+
 static bool hasBaiduCreds(){ return !baiduApiKey().trimmed().isEmpty() && !baiduSecretKey().trimmed().isEmpty(); }
 
 static QString configuredPython(){
