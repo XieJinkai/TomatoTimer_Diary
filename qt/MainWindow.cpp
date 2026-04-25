@@ -1,31 +1,22 @@
 #include "MainWindow.h"
-#include <QTabWidget>
-#include <QWidget>
-#include <QIcon>
-#include "pages/LoginRegisterPage.h"
-#include "LoginWindow.h"
-#include "pages/PomodoroPage.h"
-#include "pages/StopwatchPage.h"
-#include <QToolBar>
+
 #include <QAction>
-#include <QWidget>
+#include <QIcon>
 #include <QSizePolicy>
-#include "windows/CalendarWindow.h"
-#include "ui/Theme.h"
-#include "pages/DiaryTabPage.h"
-#include <QMessageBox>
-#include "windows/DiaryWindow.h"
-#include <QDate>
-#include "services/Session.h"
-#include "pages/StatsPage.h"
-#include "pages/ImageToolsPage.h"
-#include "pages/SettingsSyncPage.h"
-#if __has_include("pages/AccountingPage.h")
+#include <QTabWidget>
+#include <QToolBar>
+#include <QWidget>
+
+#include "LoginWindow.h"
 #include "pages/AccountingPage.h"
-#define WITH_ACCOUNTING_PAGE 1
-#else
-#define WITH_ACCOUNTING_PAGE 0
-#endif
+#include "pages/DiaryTabPage.h"
+#include "pages/ImageToolsPage.h"
+#include "pages/PomodoroPage.h"
+#include "pages/SettingsSyncPage.h"
+#include "pages/StatsPage.h"
+#include "pages/StopwatchPage.h"
+#include "services/Session.h"
+#include "ui/Theme.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setupUi();
@@ -35,42 +26,45 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 
 void MainWindow::setupUi(){
     tabs_ = new QTabWidget(this);
+    tabs_->setObjectName("mainTabs");
     setCentralWidget(tabs_);
 
     tabs_->addTab(new PomodoroPage(this), QIcon(), "番茄钟");
     tabs_->addTab(new StopwatchPage(this), QIcon(), "正向计时");
     tabs_->addTab(new StatsPage(this), QIcon(), "数据统计");
-#if WITH_ACCOUNTING_PAGE
     tabs_->addTab(new AccountingPage(this), QIcon(), "记账");
-#endif
+
     auto* diaryTab = new DiaryTabPage(this);
     tabs_->addTab(diaryTab, QIcon(), "日记");
     tabs_->addTab(new ImageToolsPage(this), QIcon(), "图片处理");
     tabs_->addTab(new SettingsSyncPage(this), QIcon(), "设置/同步");
 
-    auto* tb = addToolBar("工具");
-    QAction* actLight = new QAction("日间主题", this);
-    QAction* actDark = new QAction("夜间主题", this);
-    QAction* actLogout = new QAction("退出登录", this);
+    auto* toolbar = addToolBar("工具");
+    auto* actionLight = new QAction("日间主题", this);
+    auto* actionDark = new QAction("夜间主题", this);
+    auto* actionLogout = new QAction("退出登录", this);
+
     auto* spacer = new QWidget(this);
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    tb->addSeparator();
-    tb->addAction(actLight);
-    tb->addAction(actDark);
-    tb->addWidget(spacer);
-    tb->addAction(actLogout);
-    connect(actLight, &QAction::triggered, this, []{
+
+    toolbar->addSeparator();
+    toolbar->addAction(actionLight);
+    toolbar->addAction(actionDark);
+    toolbar->addWidget(spacer);
+    toolbar->addAction(actionLogout);
+
+    connect(actionLight, &QAction::triggered, this, []{
         Theme::apply(Theme::Mode::Light);
         Theme::save(Theme::Mode::Light);
     });
-    connect(actDark, &QAction::triggered, this, []{
+    connect(actionDark, &QAction::triggered, this, []{
         Theme::apply(Theme::Mode::Dark);
         Theme::save(Theme::Mode::Dark);
     });
-    connect(actLogout, &QAction::triggered, this, [this]{
+    connect(actionLogout, &QAction::triggered, this, [this]{
         Session::instance().logout();
-        auto* login = new LoginWindow();
-        login->show();
+        auto* loginWindow = new LoginWindow();
+        loginWindow->show();
         close();
     });
 }

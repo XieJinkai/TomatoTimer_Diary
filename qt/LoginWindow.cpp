@@ -1,4 +1,5 @@
 #include "LoginWindow.h"
+#include "MainWindow.h"
 #include "pages/LoginRegisterPage.h"
 
 LoginWindow::LoginWindow(QWidget* parent) : QMainWindow(parent) {
@@ -10,5 +11,10 @@ LoginWindow::LoginWindow(QWidget* parent) : QMainWindow(parent) {
 void LoginWindow::setupUi(){
     page_ = new LoginRegisterPage(this);
     setCentralWidget(page_);
-    connect(page_, &LoginRegisterPage::loggedIn, this, &LoginWindow::loginSucceeded);
+    connect(page_, &LoginRegisterPage::loggedIn, this, [this]{
+        emit loginSucceeded();
+        auto* mainWindow = new MainWindow();
+        mainWindow->show();
+        close();
+    });
 }

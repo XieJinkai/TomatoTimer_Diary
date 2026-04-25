@@ -36,8 +36,11 @@ add_executable(tomato_timer
   qt/pages/DiaryPage.h qt/pages/DiaryPage.cpp
   qt/pages/DiaryTabPage.h qt/pages/DiaryTabPage.cpp
   qt/pages/StatsPage.h qt/pages/StatsPage.cpp
+  qt/pages/AccountingPage.h qt/pages/AccountingPage.cpp
   qt/pages/ImageToolsPage.h qt/pages/ImageToolsPage.cpp
   qt/pages/SettingsSyncPage.h qt/pages/SettingsSyncPage.cpp
+  qt/services/AccountingStore.h qt/services/AccountingStore.cpp
+  qt/services/AccountingStatsService.h qt/services/AccountingStatsService.cpp
   qt/services/Session.h qt/services/Session.cpp
   qt/services/DiaryStore.h qt/services/DiaryStore.cpp
   qt/services/DataStore.h qt/services/DataStore.cpp
@@ -126,4 +129,40 @@ if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/A
   target_include_directories(accounting_page_tests PRIVATE qt qt/pages qt/services qt/windows qt/ui qt/ui/charts ./include ./include/opencv2)
   target_link_libraries(accounting_page_tests PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Test)
   add_test(NAME accounting_page_tests COMMAND accounting_page_tests)
+endif()
+
+if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/LoginWindowFlowTests.cpp")
+  enable_testing()
+  add_executable(login_window_flow_tests
+    qt/tests/LoginWindowFlowTests.cpp
+    qt/LoginWindow.h qt/LoginWindow.cpp
+    qt/MainWindow.h qt/MainWindow.cpp
+    qt/windows/CalendarWindow.h qt/windows/CalendarWindow.cpp
+    qt/windows/DiaryWindow.h qt/windows/DiaryWindow.cpp
+    qt/pages/LoginRegisterPage.h qt/pages/LoginRegisterPage.cpp
+    qt/pages/PomodoroPage.h qt/pages/PomodoroPage.cpp
+    qt/pages/StopwatchPage.h qt/pages/StopwatchPage.cpp
+    qt/pages/DiaryPage.h qt/pages/DiaryPage.cpp
+    qt/pages/DiaryTabPage.h qt/pages/DiaryTabPage.cpp
+    qt/pages/StatsPage.h qt/pages/StatsPage.cpp
+    qt/pages/AccountingPage.h qt/pages/AccountingPage.cpp
+    qt/pages/ImageToolsPage.h qt/pages/ImageToolsPage.cpp
+    qt/pages/SettingsSyncPage.h qt/pages/SettingsSyncPage.cpp
+    qt/services/AccountingStore.h qt/services/AccountingStore.cpp
+    qt/services/AccountingStatsService.h qt/services/AccountingStatsService.cpp
+    qt/services/Session.h qt/services/Session.cpp
+    qt/services/DiaryStore.h qt/services/DiaryStore.cpp
+    qt/services/DataStore.h qt/services/DataStore.cpp
+    qt/services/StatsService.h qt/services/StatsService.cpp
+    qt/services/SpeechToText.h qt/services/SpeechToText.cpp
+    qt/services/OcrService.h qt/services/OcrService.cpp
+    qt/services/PaddleInferOcr.h qt/services/PaddleInferOcr.cpp
+    qt/ui/Theme.h qt/ui/Theme.cpp
+    qt/ui/ImageView.h qt/ui/ImageView.cpp
+    qt/ui/charts/BarChartWidget.h qt/ui/charts/BarChartWidget.cpp
+    qt/ui/charts/PieChartWidget.h qt/ui/charts/PieChartWidget.cpp
+  )
+  target_include_directories(login_window_flow_tests PRIVATE qt qt/pages qt/services qt/windows qt/ui qt/ui/charts ./include ./include/opencv2)
+  target_link_libraries(login_window_flow_tests PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Test)
+  add_test(NAME login_window_flow_tests COMMAND login_window_flow_tests)
 endif()

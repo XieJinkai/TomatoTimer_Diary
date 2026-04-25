@@ -1,9 +1,9 @@
 #include <QApplication>
-#include "MainWindow.h"
-#include "LoginWindow.h"
-#include "ui/Theme.h"
 #include <QCoreApplication>
 #include <QIcon>
+
+#include "LoginWindow.h"
+#include "ui/Theme.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
@@ -11,12 +11,8 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName("TomatoTimerQt");
     app.setWindowIcon(QIcon(":/icon.png"));
     Theme::apply(Theme::load());
+
     LoginWindow login;
-    QObject::connect(&login, &LoginWindow::loginSucceeded, [&login]{
-        auto* w = new MainWindow();
-        w->show();
-        login.close();
-    });
     login.show();
     return app.exec();
 }
