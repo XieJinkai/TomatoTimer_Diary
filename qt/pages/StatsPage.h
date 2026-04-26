@@ -1,32 +1,62 @@
 #pragma once
+
 #include <QWidget>
-class QLabel; class QPushButton; class QStackedWidget; class PieChartWidget; class BarChartWidget; class QComboBox; class QShowEvent;
+
+#include "../services/AccountingStore.h"
+#include "../services/StatsService.h"
+
+class BarChartWidget;
+class PieChartWidget;
+class QComboBox;
+class QLabel;
+class QPushButton;
+class QShowEvent;
+class QStackedWidget;
+
 class StatsPage : public QWidget {
     Q_OBJECT
 public:
-    // 创建数据统计页面
     explicit StatsPage(QWidget* parent=nullptr);
+
 private:
-    QPushButton* btnToggle_{};
-    QStackedWidget* stackWeek_{}; PieChartWidget* pieWeek_{}; BarChartWidget* barWeek_{};
-    QStackedWidget* stackMonth_{}; PieChartWidget* pieMonth_{}; BarChartWidget* barMonth_{};
-    QLabel* lblWeekTotal_{}; QLabel* lblMonthTotal_{};
+    QPushButton* btnFocusToggle_{};
+    QComboBox* cmbFocusRange_{};
+    QStackedWidget* stackFocusDay_{};
+    PieChartWidget* pieFocusDay_{};
+    BarChartWidget* barFocusDay_{};
+    QLabel* lblFocusDayTotal_{};
+    QStackedWidget* stackFocusRange_{};
+    PieChartWidget* pieFocusRange_{};
+    BarChartWidget* barFocusRange_{};
+    QLabel* lblFocusRangeTotal_{};
+
     QPushButton* btnConsumeToggle_{};
     QComboBox* cmbConsumeRange_{};
-    QStackedWidget* stackConsume_{}; PieChartWidget* pieConsume_{}; BarChartWidget* barConsume_{};
-    QLabel* lblConsumeTotal_{}; QLabel* lblConsumeAvg_{}; QLabel* lblConsumeMax_{}; QLabel* lblConsumeMin_{};
-    // 初始化 UI
+    QStackedWidget* stackConsumeDay_{};
+    PieChartWidget* pieConsumeDay_{};
+    BarChartWidget* barConsumeDay_{};
+    QLabel* lblConsumeDayTotal_{};
+    QLabel* lblConsumeDayAvg_{};
+    QLabel* lblConsumeDayMax_{};
+    QLabel* lblConsumeDayMin_{};
+    QStackedWidget* stackConsumeRange_{};
+    PieChartWidget* pieConsumeRange_{};
+    BarChartWidget* barConsumeRange_{};
+    QLabel* lblConsumeRangeTotal_{};
+    QLabel* lblConsumeRangeAvg_{};
+    QLabel* lblConsumeRangeMax_{};
+    QLabel* lblConsumeRangeMin_{};
+
     void setupUi();
-    // 刷新统计数据与图表
     void refresh();
-    // 切换饼图/柱状图
-    void toggle();
+    void refreshFocus();
     void refreshConsume();
-    void toggleConsumeChart();
-    void onConsumeRangeChanged(int index);
-    void onConsumePieClicked(const QString& label, double value);
-    void onConsumeBarClicked(const QString& label, double value);
-    void showConsumeDetail(const QString& type);
+    void toggleFocusCharts();
+    void toggleConsumeCharts();
+    void refreshFocusBlock(QStackedWidget* stack, PieChartWidget* pie, BarChartWidget* bar, QLabel* totalLabel, StatsRange range, const QString& axisLabel);
+    void refreshConsumeBlock(QStackedWidget* stack, PieChartWidget* pie, BarChartWidget* bar, QLabel* totalLabel, QLabel* avgLabel, QLabel* maxLabel, QLabel* minLabel, AccountingRange range);
+    void showConsumeDetail(const QString& type, AccountingRange range);
+
 protected:
     void showEvent(QShowEvent* event) override;
 };
