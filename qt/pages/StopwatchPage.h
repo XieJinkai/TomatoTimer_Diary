@@ -1,5 +1,6 @@
 #pragma once
 #include <QWidget>
+#include <QDateTime>
 class QLabel; class QPushButton; class QTimer; class QLineEdit;
 
 class StopwatchPage : public QWidget {
@@ -10,6 +11,7 @@ public:
 private:
     QLabel* display_{}; QPushButton* btnStart_{}; QPushButton* btnStop_{}; QPushButton* btnReset_{}; QLineEdit* remark_{};
     QTimer* timer_{}; int elapsedSec_{0};
+    QDateTime startedAt_{};
     // 初始化 UI
     void setupUi();
     // 开始计时

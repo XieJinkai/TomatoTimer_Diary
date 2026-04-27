@@ -44,6 +44,7 @@ add_executable(tomato_timer
   qt/services/Session.h qt/services/Session.cpp
   qt/services/DiaryStore.h qt/services/DiaryStore.cpp
   qt/services/DataStore.h qt/services/DataStore.cpp
+  qt/services/FocusRecordService.h qt/services/FocusRecordService.cpp
   qt/services/StatsService.h qt/services/StatsService.cpp
   qt/services/SpeechToText.h qt/services/SpeechToText.cpp
   qt/services/OcrService.h qt/services/OcrService.cpp
@@ -153,6 +154,7 @@ if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/L
     qt/services/Session.h qt/services/Session.cpp
     qt/services/DiaryStore.h qt/services/DiaryStore.cpp
     qt/services/DataStore.h qt/services/DataStore.cpp
+    qt/services/FocusRecordService.h qt/services/FocusRecordService.cpp
     qt/services/StatsService.h qt/services/StatsService.cpp
     qt/services/SpeechToText.h qt/services/SpeechToText.cpp
     qt/services/OcrService.h qt/services/OcrService.cpp
@@ -164,5 +166,19 @@ if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/L
   )
   target_include_directories(login_window_flow_tests PRIVATE qt qt/pages qt/services qt/windows qt/ui qt/ui/charts ./include ./include/opencv2)
   target_link_libraries(login_window_flow_tests PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Test)
+  if(WIN32)
+    target_link_libraries(login_window_flow_tests PRIVATE sapi)
+  endif()
   add_test(NAME login_window_flow_tests COMMAND login_window_flow_tests)
+endif()
+
+if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/FocusRecordServiceTests.cpp")
+  enable_testing()
+  add_executable(focus_record_service_tests
+    qt/tests/FocusRecordServiceTests.cpp
+    qt/services/FocusRecordService.h qt/services/FocusRecordService.cpp
+  )
+  target_include_directories(focus_record_service_tests PRIVATE qt qt/services)
+  target_link_libraries(focus_record_service_tests PRIVATE Qt${QT_VERSION_MAJOR}::Test)
+  add_test(NAME focus_record_service_tests COMMAND focus_record_service_tests)
 endif()

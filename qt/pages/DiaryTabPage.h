@@ -13,10 +13,13 @@ private:
     QLabel* title_{}; QTextEdit* editor_{}; QPushButton* btnSave_{}; QPushButton* btnInsertImage_{}; QPushButton* btnVoice_{}; QPushButton* btnCalendar_{};
     QFontComboBox* fontBox_{}; QComboBox* sizeBox_{}; QPushButton* btnBold_{}; QPushButton* btnItalic_{};
     QStringList images_{};
+    QStringList focusLines_{};
+    QStringList mediaLines_{};
     // 初始化 UI
     void setupUi();
     // 按日期加载内容
     void load();
+    void refreshAfterFocusRecord(const QString& user, const QDate& date);
     // 保存内容到存储
     void save();
     // 插入图片到编辑区与存储

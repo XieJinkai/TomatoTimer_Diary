@@ -1,5 +1,6 @@
 #pragma once
 #include <QWidget>
+#include <QStringList>
 class QCalendarWidget; class QTextEdit; class QPushButton; class QLineEdit;
 
 class DiaryPage : public QWidget {
@@ -9,6 +10,7 @@ public:
     explicit DiaryPage(QWidget* parent=nullptr);
 private:
     QCalendarWidget* calendar_{}; QTextEdit* editor_{}; QLineEdit* mediaInfo_{}; QPushButton* btnSave_{}; QPushButton* btnInsertImage_{}; QPushButton* btnAttachAudio_{};
+    QStringList focusLines_{};
     // 初始化 UI
     void setupUi();
     // 加载所选日期的日记
