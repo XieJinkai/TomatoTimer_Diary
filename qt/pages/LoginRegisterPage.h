@@ -1,22 +1,46 @@
 #pragma once
+
 #include <QWidget>
-class QLineEdit; class QPushButton; class QLabel;
+
+class QLabel;
+class QLineEdit;
+class QPushButton;
+class QNetworkAccessManager;
+class QNetworkReply;
 
 class LoginRegisterPage : public QWidget {
     Q_OBJECT
 public:
-    // 创建登录/注册页面
     explicit LoginRegisterPage(QWidget* parent=nullptr);
+
 signals:
-    // 登录成功信号
     void loggedIn();
+
 private:
-    QLineEdit* userEdit_{}; QLineEdit* passEdit_{}; QLabel* info_{};
-    QPushButton* btnRegister_{}; QPushButton* btnLogin_{};
-    // 初始化 UI
     void setupUi();
-    // 注册新用户
-    void onRegister();
-    // 执行登录
-    void onLogin();
+    void enterLocalMode();
+    void onRemoteLogin();
+    void onRemoteRegister();
+    void handleLoginReply(QNetworkReply* reply);
+    void handleRegisterReply(QNetworkReply* reply);
+    QString serverUrlText() const;
+
+    QLabel* info_{};
+    QLineEdit* serverUrlEdit_{};
+    QLineEdit* loginUserEdit_{};
+    QLineEdit* loginPassEdit_{};
+    QLineEdit* registerUserEdit_{};
+    QLineEdit* registerPassEdit_{};
+    QLineEdit* registerConfirmEdit_{};
+    QLineEdit* realNameEdit_{};
+    QLineEdit* genderEdit_{};
+    QLineEdit* ageEdit_{};
+    QLineEdit* phoneEdit_{};
+    QLineEdit* emailEdit_{};
+    QLineEdit* schoolEdit_{};
+    QLineEdit* majorEdit_{};
+    QPushButton* btnLocal_{};
+    QPushButton* btnLogin_{};
+    QPushButton* btnRegister_{};
+    QNetworkAccessManager* network_{};
 };

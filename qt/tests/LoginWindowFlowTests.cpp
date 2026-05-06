@@ -32,27 +32,30 @@ private slots:
         Session::instance().logout();
     }
 
-    void loginOpensMainWindow(){
-        const QString username = "login_flow_test_user";
-        QDir(DataStore::userDir(username)).removeRecursively();
+    void localModeOpensMainWindow(){
+        QDir(DataStore::userDir("local_user")).removeRecursively();
 
         LoginWindow loginWindow;
         loginWindow.show();
         QVERIFY(QTest::qWaitForWindowExposed(&loginWindow));
 
-        const auto edits = loginWindow.findChildren<QLineEdit*>();
-        QCOMPARE(edits.size(), 2);
-        edits.at(0)->setText(username);
-        edits.at(1)->setText("123456");
-
         const auto buttons = loginWindow.findChildren<QPushButton*>();
-        QCOMPARE(buttons.size(), 2);
+        QVERIFY(buttons.size() >= 1);
 
         QSignalSpy loginSpy(&loginWindow, &LoginWindow::loginSucceeded);
 
-        QTest::mouseClick(buttons.at(0), Qt::LeftButton);
-        QTest::mouseClick(buttons.at(1), Qt::LeftButton);
+        QPushButton* localButton = nullptr;
+        for(QPushButton* button : buttons){
+            if(button->text().contains("本地")){
+                localButton = button;
+                break;
+            }
+        }
+        QVERIFY(localButton != nullptr);
+
+        QTest::mouseClick(localButton, Qt::LeftButton);
         QTRY_COMPARE(loginSpy.count(), 1);
+        QCOMPARE(Session::instance().username(), QString("local_user"));
 
         bool foundMainWindow = false;
         for(QWidget* widget : QApplication::topLevelWidgets()){

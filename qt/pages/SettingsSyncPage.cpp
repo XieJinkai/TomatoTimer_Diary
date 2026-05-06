@@ -1,42 +1,86 @@
 #include "SettingsSyncPage.h"
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QLabel>
-#include <QFileDialog>
-#include <QDir>
-#include <QFileInfoList>
-#include "../services/Session.h"
-#include "../services/DataStore.h"
 
-SettingsSyncPage::SettingsSyncPage(QWidget* parent): QWidget(parent){ setupUi(); }
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QUrl>
+#include <QVBoxLayout>
+
+#include "../services/CloudSyncService.h"
+#include "../services/Session.h"
+
+SettingsSyncPage::SettingsSyncPage(QWidget* parent): QWidget(parent){
+    setupUi();
+}
 
 void SettingsSyncPage::setupUi(){
+    sync_ = new CloudSyncService(this);
+
     auto* lay = new QVBoxLayout(this);
-    cloudDir_ = new QLineEdit(this); cloudDir_->setPlaceholderText("选择云目录（本地模拟）");
-    btnChoose_ = new QPushButton("选择目录", this);
-    btnSync_ = new QPushButton("同步", this);
-    info_ = new QLabel("选择目录后将用户数据复制到该目录。", this);
-    auto* row = new QHBoxLayout(); row->addWidget(cloudDir_); row->addWidget(btnChoose_); row->addWidget(btnSync_);
+    auto* row = new QHBoxLayout();
+
+    serverUrl_ = new QLineEdit(this);
+    serverUrl_->setPlaceholderText("本地云服务器地址");
+    serverUrl_->setText(sync_->serverUrl().toString());
+
+    btnTest_ = new QPushButton("测试连接", this);
+    btnUpload_ = new QPushButton("上传到云端", this);
+    btnDownload_ = new QPushButton("从云端下载", this);
+    info_ = new QLabel("启动 scripts/local_cloud_server.py 后，可通过 HTTP 模拟云同步。", this);
+    info_->setWordWrap(true);
+
+    row->addWidget(serverUrl_, 1);
+    row->addWidget(btnTest_);
+    row->addWidget(btnUpload_);
+    row->addWidget(btnDownload_);
     lay->addLayout(row);
     lay->addWidget(info_);
     lay->addStretch();
 
-    connect(btnChoose_, &QPushButton::clicked, this, &SettingsSyncPage::chooseCloud);
-    connect(btnSync_, &QPushButton::clicked, this, &SettingsSyncPage::syncNow);
+    connect(btnTest_, &QPushButton::clicked, this, &SettingsSyncPage::testConnection);
+    connect(btnUpload_, &QPushButton::clicked, this, &SettingsSyncPage::uploadNow);
+    connect(btnDownload_, &QPushButton::clicked, this, &SettingsSyncPage::downloadNow);
+    connect(sync_, &CloudSyncService::statusMessage, info_, &QLabel::setText);
 }
 
-void SettingsSyncPage::chooseCloud(){
-    const QString dir = QFileDialog::getExistingDirectory(this, "选择同步目录");
-    if(!dir.isEmpty()) cloudDir_->setText(dir);
+bool SettingsSyncPage::applyServerUrl(){
+    const QUrl url(serverUrl_->text().trimmed());
+    if(!url.isValid() || url.scheme().isEmpty() || url.host().isEmpty()){
+        info_->setText("请输入有效的服务器地址，例如 http://127.0.0.1:18080");
+        return false;
+    }
+    sync_->setServerUrl(url);
+    return true;
 }
 
-void SettingsSyncPage::syncNow(){
-    if(!Session::instance().isLoggedIn()){ info_->setText("请先登录"); return; }
-    const QString dest = cloudDir_->text(); if(dest.isEmpty()){ info_->setText("请先选择目录"); return; }
-    const QString src = DataStore::userDir(Session::instance().username());
-    QDir srcDir(src); auto files = srcDir.entryInfoList(QDir::Files);
-    int copied=0; for(const auto& fi:files){ QFile::copy(fi.filePath(), dest + QDir::separator() + fi.fileName()); copied++; }
-    info_->setText(QString("已复制 %1 个文件到 %2").arg(copied).arg(dest));
+void SettingsSyncPage::testConnection(){
+    if(!applyServerUrl()) return;
+    sync_->testConnection();
+}
+
+void SettingsSyncPage::uploadNow(){
+    if(!Session::instance().isLoggedIn()){
+        info_->setText("请先登录");
+        return;
+    }
+    if(Session::instance().isLocalMode()){
+        info_->setText("本地模式不支持服务器同步，请注册或登录账号后使用同步功能。");
+        return;
+    }
+    if(!applyServerUrl()) return;
+    sync_->uploadUserFiles(Session::instance().username(), Session::instance().userId());
+}
+
+void SettingsSyncPage::downloadNow(){
+    if(!Session::instance().isLoggedIn()){
+        info_->setText("请先登录");
+        return;
+    }
+    if(Session::instance().isLocalMode()){
+        info_->setText("本地模式不支持服务器同步，请注册或登录账号后使用同步功能。");
+        return;
+    }
+    if(!applyServerUrl()) return;
+    sync_->downloadUserFiles(Session::instance().username(), Session::instance().userId());
 }

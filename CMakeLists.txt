@@ -8,8 +8,8 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network Sql)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network Sql)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Test QUIET)
 find_package(Python3 COMPONENTS Interpreter QUIET)
 
@@ -44,6 +44,7 @@ add_executable(tomato_timer
   qt/services/Session.h qt/services/Session.cpp
   qt/services/DiaryStore.h qt/services/DiaryStore.cpp
   qt/services/DataStore.h qt/services/DataStore.cpp
+  qt/services/CloudSyncService.h qt/services/CloudSyncService.cpp
   qt/services/FocusRecordService.h qt/services/FocusRecordService.cpp
   qt/services/StatsService.h qt/services/StatsService.cpp
   qt/services/SpeechToText.h qt/services/SpeechToText.cpp
@@ -57,6 +58,11 @@ add_executable(tomato_timer
 
 target_include_directories(tomato_timer PRIVATE qt qt/pages qt/services qt/windows qt/ui qt/ui/charts ./include ./include/opencv2)
 target_link_libraries(tomato_timer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network)
+
+add_executable(local_api_server
+  qt/server/LocalApiServer.cpp
+)
+target_link_libraries(local_api_server PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Sql)
 
 
 if(HAVE_QT_MULTIMEDIA)
@@ -132,6 +138,18 @@ if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/A
   add_test(NAME accounting_page_tests COMMAND accounting_page_tests)
 endif()
 
+if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/CloudSyncServiceTests.cpp")
+  enable_testing()
+  add_executable(cloud_sync_service_tests
+    qt/tests/CloudSyncServiceTests.cpp
+    qt/services/CloudSyncService.h qt/services/CloudSyncService.cpp
+    qt/services/DataStore.h qt/services/DataStore.cpp
+  )
+  target_include_directories(cloud_sync_service_tests PRIVATE qt qt/services)
+  target_link_libraries(cloud_sync_service_tests PRIVATE Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Test)
+  add_test(NAME cloud_sync_service_tests COMMAND cloud_sync_service_tests)
+endif()
+
 if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/LoginWindowFlowTests.cpp")
   enable_testing()
   add_executable(login_window_flow_tests
@@ -154,6 +172,7 @@ if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/L
     qt/services/Session.h qt/services/Session.cpp
     qt/services/DiaryStore.h qt/services/DiaryStore.cpp
     qt/services/DataStore.h qt/services/DataStore.cpp
+    qt/services/CloudSyncService.h qt/services/CloudSyncService.cpp
     qt/services/FocusRecordService.h qt/services/FocusRecordService.cpp
     qt/services/StatsService.h qt/services/StatsService.cpp
     qt/services/SpeechToText.h qt/services/SpeechToText.cpp

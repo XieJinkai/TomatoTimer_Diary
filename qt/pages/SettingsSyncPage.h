@@ -1,18 +1,28 @@
 #pragma once
+
 #include <QWidget>
-class QLineEdit; class QPushButton; class QLabel;
+
+class CloudSyncService;
+class QLabel;
+class QLineEdit;
+class QPushButton;
 
 class SettingsSyncPage : public QWidget {
     Q_OBJECT
 public:
-    // 创建设置/同步页面
     explicit SettingsSyncPage(QWidget* parent=nullptr);
+
 private:
-    QLineEdit* cloudDir_{}; QLabel* info_{}; QPushButton* btnChoose_{}; QPushButton* btnSync_{};
-    // 初始化 UI
     void setupUi();
-    // 选择云目录
-    void chooseCloud();
-    // 立刻同步到云目录
-    void syncNow();
+    bool applyServerUrl();
+    void testConnection();
+    void uploadNow();
+    void downloadNow();
+
+    QLineEdit* serverUrl_{};
+    QLabel* info_{};
+    QPushButton* btnTest_{};
+    QPushButton* btnUpload_{};
+    QPushButton* btnDownload_{};
+    CloudSyncService* sync_{};
 };
