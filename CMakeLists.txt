@@ -150,6 +150,18 @@ if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/C
   add_test(NAME cloud_sync_service_tests COMMAND cloud_sync_service_tests)
 endif()
 
+if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/LoginRegisterPageApiTests.cpp")
+  enable_testing()
+  add_executable(login_register_page_api_tests
+    qt/tests/LoginRegisterPageApiTests.cpp
+    qt/pages/LoginRegisterPage.h qt/pages/LoginRegisterPage.cpp
+    qt/services/Session.h qt/services/Session.cpp
+  )
+  target_include_directories(login_register_page_api_tests PRIVATE qt qt/pages qt/services)
+  target_link_libraries(login_register_page_api_tests PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Test)
+  add_test(NAME login_register_page_api_tests COMMAND login_register_page_api_tests)
+endif()
+
 if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/LoginWindowFlowTests.cpp")
   enable_testing()
   add_executable(login_window_flow_tests

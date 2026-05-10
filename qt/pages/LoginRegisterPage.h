@@ -19,10 +19,13 @@ signals:
 private:
     void setupUi();
     void enterLocalMode();
+    void testConnection();
     void onRemoteLogin();
     void onRemoteRegister();
+    void handleHealthReply(QNetworkReply* reply);
     void handleLoginReply(QNetworkReply* reply);
     void handleRegisterReply(QNetworkReply* reply);
+    QString responseErrorMessage(QNetworkReply* reply, const QString& fallback) const;
     QString serverUrlText() const;
 
     QLabel* info_{};
@@ -40,6 +43,7 @@ private:
     QLineEdit* schoolEdit_{};
     QLineEdit* majorEdit_{};
     QPushButton* btnLocal_{};
+    QPushButton* btnTestConnection_{};
     QPushButton* btnLogin_{};
     QPushButton* btnRegister_{};
     QNetworkAccessManager* network_{};

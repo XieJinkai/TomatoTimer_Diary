@@ -25,11 +25,15 @@ void LoginRegisterPage::setupUi(){
 
     auto* layout = new QVBoxLayout(this);
     info_ = new QLabel("请选择本地模式，或使用账号登录。", this);
+    info_->setObjectName("loginInfoLabel");
     info_->setWordWrap(true);
 
     serverUrlEdit_ = new QLineEdit(this);
+    serverUrlEdit_->setObjectName("serverUrlEdit");
     serverUrlEdit_->setPlaceholderText("本地 API 服务地址");
     serverUrlEdit_->setText("http://127.0.0.1:18080");
+    btnTestConnection_ = new QPushButton("测试连接", this);
+    btnTestConnection_->setObjectName("testConnectionButton");
 
     auto* tabs = new QTabWidget(this);
 
@@ -43,9 +47,12 @@ void LoginRegisterPage::setupUi(){
     auto* loginPage = new QWidget(this);
     auto* loginForm = new QFormLayout(loginPage);
     loginUserEdit_ = new QLineEdit(loginPage);
+    loginUserEdit_->setObjectName("loginUserEdit");
     loginPassEdit_ = new QLineEdit(loginPage);
+    loginPassEdit_->setObjectName("loginPassEdit");
     loginPassEdit_->setEchoMode(QLineEdit::Password);
     btnLogin_ = new QPushButton("登录", loginPage);
+    btnLogin_->setObjectName("loginButton");
     loginForm->addRow("用户名", loginUserEdit_);
     loginForm->addRow("密码", loginPassEdit_);
     loginForm->addRow(btnLogin_);
@@ -82,10 +89,14 @@ void LoginRegisterPage::setupUi(){
     tabs->addTab(registerPage, "账号注册");
 
     layout->addWidget(info_);
-    layout->addWidget(serverUrlEdit_);
+    auto* serverRow = new QHBoxLayout();
+    serverRow->addWidget(serverUrlEdit_, 1);
+    serverRow->addWidget(btnTestConnection_);
+    layout->addLayout(serverRow);
     layout->addWidget(tabs);
 
     connect(btnLocal_, &QPushButton::clicked, this, &LoginRegisterPage::enterLocalMode);
+    connect(btnTestConnection_, &QPushButton::clicked, this, &LoginRegisterPage::testConnection);
     connect(btnLogin_, &QPushButton::clicked, this, &LoginRegisterPage::onRemoteLogin);
     connect(btnRegister_, &QPushButton::clicked, this, &LoginRegisterPage::onRemoteRegister);
 }
@@ -94,6 +105,11 @@ void LoginRegisterPage::enterLocalMode(){
     Session::instance().loginLocal("local_user");
     info_->setText("已进入本地模式：local_user");
     emit loggedIn();
+}
+
+void LoginRegisterPage::testConnection(){
+    QNetworkReply* reply = network_->get(QNetworkRequest(QUrl(serverUrlText() + "/health")));
+    connect(reply, &QNetworkReply::finished, this, [this, reply](){ handleHealthReply(reply); });
 }
 
 void LoginRegisterPage::onRemoteLogin(){
@@ -144,14 +160,29 @@ void LoginRegisterPage::onRemoteRegister(){
     connect(reply, &QNetworkReply::finished, this, [this, reply](){ handleRegisterReply(reply); });
 }
 
+void LoginRegisterPage::handleHealthReply(QNetworkReply* reply){
+    const QString message = responseErrorMessage(reply, "无法连接本地 API 服务");
+    if(reply->error() == QNetworkReply::NoError){
+        info_->setText("本地 API 服务连接正常");
+    }else{
+        info_->setText(message);
+    }
+    reply->deleteLater();
+}
+
 void LoginRegisterPage::handleLoginReply(QNetworkReply* reply){
+    const QByteArray body = reply->readAll();
+    const QJsonObject root = QJsonDocument::fromJson(body).object();
+    if(reply->error() != QNetworkReply::NoError && root.contains("error")){
+        info_->setText(root.value("error").toString("登录失败"));
+        reply->deleteLater();
+        return;
+    }
     if(reply->error() != QNetworkReply::NoError){
         info_->setText("登录失败：无法连接本地 API 服务");
         reply->deleteLater();
         return;
     }
-
-    const QJsonObject root = QJsonDocument::fromJson(reply->readAll()).object();
     reply->deleteLater();
     if(!root.value("ok").toBool()){
         info_->setText(root.value("error").toString("登录失败"));
@@ -171,19 +202,33 @@ void LoginRegisterPage::handleLoginReply(QNetworkReply* reply){
 }
 
 void LoginRegisterPage::handleRegisterReply(QNetworkReply* reply){
+    const QByteArray body = reply->readAll();
+    const QJsonObject root = QJsonDocument::fromJson(body).object();
+    if(reply->error() != QNetworkReply::NoError && root.contains("error")){
+        info_->setText(root.value("error").toString("注册失败"));
+        reply->deleteLater();
+        return;
+    }
     if(reply->error() != QNetworkReply::NoError){
         info_->setText("注册失败：无法连接本地 API 服务");
         reply->deleteLater();
         return;
     }
-
-    const QJsonObject root = QJsonDocument::fromJson(reply->readAll()).object();
     reply->deleteLater();
     if(root.value("ok").toBool()){
         info_->setText("注册成功，请切换到账号登录页登录");
     }else{
         info_->setText(root.value("error").toString("注册失败"));
     }
+}
+
+QString LoginRegisterPage::responseErrorMessage(QNetworkReply* reply, const QString& fallback) const {
+    const QByteArray body = reply->peek(reply->bytesAvailable());
+    const QJsonObject root = QJsonDocument::fromJson(body).object();
+    if(root.contains("error")){
+        return root.value("error").toString(fallback);
+    }
+    return fallback;
 }
 
 QString LoginRegisterPage::serverUrlText() const {
