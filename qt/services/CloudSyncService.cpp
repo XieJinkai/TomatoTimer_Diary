@@ -98,6 +98,23 @@ void CloudSyncService::downloadUserFiles(const QString& username, int userId){
     });
 }
 
+void CloudSyncService::deleteUserFile(int userId, const QString& filename){
+    if(userId <= 0 || filename.trimmed().isEmpty()){
+        finish(false, "删除云端文件参数无效");
+        return;
+    }
+
+    emit statusMessage(QString("正在删除云端文件：%1").arg(filename));
+    QNetworkReply* reply = manager_->sendCustomRequest(
+        QNetworkRequest(endpoint(QString("/api/users/%1/files/%2")
+            .arg(userId).arg(filename))),
+        QByteArrayLiteral("DELETE")
+    );
+    connect(reply, &QNetworkReply::finished, this, [this, filename, reply](){
+        handleDeleteReply(filename, reply);
+    });
+}
+
 QUrl CloudSyncService::endpoint(const QString& path) const {
     QUrl url = serverUrl_;
     QString basePath = url.path();
@@ -106,10 +123,6 @@ QUrl CloudSyncService::endpoint(const QString& path) const {
     }
     url.setPath(basePath + path);
     return url;
-}
-
-QString CloudSyncService::encodedSegment(const QString& value) const {
-    return QString::fromLatin1(QUrl::toPercentEncoding(value));
 }
 
 void CloudSyncService::finish(bool ok, const QString& message){
@@ -176,7 +189,7 @@ void CloudSyncService::downloadNextFile(){
     const QString filename = downloadQueue_.takeFirst();
     QNetworkReply* reply = manager_->get(
         QNetworkRequest(endpoint(QString("/api/users/%1/files/%2")
-            .arg(activeDownloadUserId_).arg(encodedSegment(filename))))
+            .arg(activeDownloadUserId_).arg(filename)))
     );
     connect(reply, &QNetworkReply::finished, this, [this, filename, reply](){
         handleDownloadReply(filename, reply);
@@ -202,4 +215,11 @@ void CloudSyncService::handleDownloadReply(const QString& filename, QNetworkRepl
     reply->deleteLater();
     ++downloadedFiles_;
     downloadNextFile();
+}
+
+void CloudSyncService::handleDeleteReply(const QString& filename, QNetworkReply* reply){
+    const bool ok = reply->error() == QNetworkReply::NoError;
+    reply->deleteLater();
+    finish(ok, ok ? QString("已删除云端文件：%1").arg(filename)
+                  : QString("删除云端文件失败：%1").arg(filename));
 }

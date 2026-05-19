@@ -139,6 +139,22 @@ private slots:
 
         QDir(userDir).removeRecursively();
     }
+
+    void deleteUserFileSendsDeleteRequest(){
+        FakeHttpServer server;
+        QVERIFY(server.listen(QHostAddress::LocalHost));
+
+        CloudSyncService service;
+        service.setServerUrl(QUrl(server.url()));
+        QSignalSpy finished(&service, &CloudSyncService::operationFinished);
+
+        service.deleteUserFile(7, "img 01.png");
+
+        QTRY_COMPARE(finished.count(), 1);
+        QCOMPARE(finished.takeFirst().at(0).toBool(), true);
+        QCOMPARE(server.requests.first().method, QString("DELETE"));
+        QCOMPARE(server.requests.first().path, QString("/api/users/7/files/img%2001.png"));
+    }
 };
 
 QTEST_MAIN(CloudSyncServiceTests)

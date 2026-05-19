@@ -60,7 +60,8 @@ target_include_directories(tomato_timer PRIVATE qt qt/pages qt/services qt/windo
 target_link_libraries(tomato_timer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network)
 
 add_executable(local_api_server
-  qt/server/LocalApiServer.cpp
+  qt/server/LocalApiServer.h qt/server/LocalApiServer.cpp
+  qt/server/LocalApiServerMain.cpp
 )
 target_link_libraries(local_api_server PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Sql)
 
@@ -148,6 +149,17 @@ if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/C
   target_include_directories(cloud_sync_service_tests PRIVATE qt qt/services)
   target_link_libraries(cloud_sync_service_tests PRIVATE Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Test)
   add_test(NAME cloud_sync_service_tests COMMAND cloud_sync_service_tests)
+endif()
+
+if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/LocalApiServerTests.cpp")
+  enable_testing()
+  add_executable(local_api_server_tests
+    qt/tests/LocalApiServerTests.cpp
+    qt/server/LocalApiServer.h qt/server/LocalApiServer.cpp
+  )
+  target_include_directories(local_api_server_tests PRIVATE qt qt/server)
+  target_link_libraries(local_api_server_tests PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Test)
+  add_test(NAME local_api_server_tests COMMAND local_api_server_tests)
 endif()
 
 if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/LoginRegisterPageApiTests.cpp")

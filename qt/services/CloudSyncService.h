@@ -18,6 +18,7 @@ public:
     void testConnection();
     void uploadUserFiles(const QString& username, int userId);
     void downloadUserFiles(const QString& username, int userId);
+    void deleteUserFile(int userId, const QString& filename);
 
 signals:
     void statusMessage(const QString& message);
@@ -25,12 +26,12 @@ signals:
 
 private:
     QUrl endpoint(const QString& path) const;
-    QString encodedSegment(const QString& value) const;
     void finish(bool ok, const QString& message);
     void handleUploadReply(QNetworkReply* reply);
     void handleManifestReply(const QString& username, QNetworkReply* reply);
     void downloadNextFile();
     void handleDownloadReply(const QString& filename, QNetworkReply* reply);
+    void handleDeleteReply(const QString& filename, QNetworkReply* reply);
 
     QNetworkAccessManager* manager_{};
     QUrl serverUrl_{QStringLiteral("http://127.0.0.1:18080")};
