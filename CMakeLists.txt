@@ -43,6 +43,8 @@ add_executable(tomato_timer
   qt/services/AccountingStatsService.h qt/services/AccountingStatsService.cpp
   qt/services/Session.h qt/services/Session.cpp
   qt/services/DiaryStore.h qt/services/DiaryStore.cpp
+  qt/services/DiaryImageService.h qt/services/DiaryImageService.cpp
+  qt/services/DiaryDocumentCodec.h qt/services/DiaryDocumentCodec.cpp
   qt/services/DataStore.h qt/services/DataStore.cpp
   qt/services/CloudSyncService.h qt/services/CloudSyncService.cpp
   qt/services/FocusRecordService.h qt/services/FocusRecordService.cpp
@@ -151,6 +153,31 @@ if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/C
   add_test(NAME cloud_sync_service_tests COMMAND cloud_sync_service_tests)
 endif()
 
+if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/DiaryImageServiceTests.cpp")
+  enable_testing()
+  add_executable(diary_image_service_tests
+    qt/tests/DiaryImageServiceTests.cpp
+    qt/services/DiaryImageService.h qt/services/DiaryImageService.cpp
+    qt/services/DataStore.h qt/services/DataStore.cpp
+  )
+  target_include_directories(diary_image_service_tests PRIVATE qt qt/services)
+  target_link_libraries(diary_image_service_tests PRIVATE Qt${QT_VERSION_MAJOR}::Gui Qt${QT_VERSION_MAJOR}::Test)
+  add_test(NAME diary_image_service_tests COMMAND diary_image_service_tests)
+endif()
+
+if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/DiaryDocumentCodecTests.cpp")
+  enable_testing()
+  add_executable(diary_document_codec_tests
+    qt/tests/DiaryDocumentCodecTests.cpp
+    qt/services/DiaryDocumentCodec.h qt/services/DiaryDocumentCodec.cpp
+    qt/services/DiaryImageService.h qt/services/DiaryImageService.cpp
+    qt/services/DataStore.h qt/services/DataStore.cpp
+  )
+  target_include_directories(diary_document_codec_tests PRIVATE qt qt/services)
+  target_link_libraries(diary_document_codec_tests PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Test)
+  add_test(NAME diary_document_codec_tests COMMAND diary_document_codec_tests)
+endif()
+
 if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/LocalApiServerTests.cpp")
   enable_testing()
   add_executable(local_api_server_tests
@@ -195,6 +222,8 @@ if(TARGET Qt${QT_VERSION_MAJOR}::Test AND EXISTS "${CMAKE_SOURCE_DIR}/qt/tests/L
     qt/services/AccountingStatsService.h qt/services/AccountingStatsService.cpp
     qt/services/Session.h qt/services/Session.cpp
     qt/services/DiaryStore.h qt/services/DiaryStore.cpp
+    qt/services/DiaryImageService.h qt/services/DiaryImageService.cpp
+    qt/services/DiaryDocumentCodec.h qt/services/DiaryDocumentCodec.cpp
     qt/services/DataStore.h qt/services/DataStore.cpp
     qt/services/CloudSyncService.h qt/services/CloudSyncService.cpp
     qt/services/FocusRecordService.h qt/services/FocusRecordService.cpp

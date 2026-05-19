@@ -2,6 +2,7 @@
 
 #include <QComboBox>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QFont>
 #include <QFontComboBox>
 #include <QFontDatabase>
@@ -11,10 +12,12 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QToolTip>
-#include <QUrl>
 #include <QVBoxLayout>
 #include <thread>
 
+#include "../services/CloudSyncService.h"
+#include "../services/DiaryDocumentCodec.h"
+#include "../services/DiaryImageService.h"
 #include "../services/DiaryStore.h"
 #include "../services/FocusRecordService.h"
 #include "../services/Session.h"
@@ -29,6 +32,8 @@ DiaryTabPage::DiaryTabPage(QWidget* parent) : QWidget(parent){
 }
 
 void DiaryTabPage::setupUi(){
+    cleanupSync_ = new CloudSyncService(this);
+
     auto* lay = new QVBoxLayout(this);
     title_ = new QLabel(this);
     title_->setObjectName("title");
@@ -90,31 +95,49 @@ void DiaryTabPage::load(){
     const QString content = DiaryStore::load(user_, date_);
     const DiaryContentParts parts = FocusRecordService::splitDiaryContent(content);
     focusLines_ = parts.focusLines;
-    mediaLines_ = parts.mediaLines;
-    images_.clear();
+    mediaLines_.clear();
 
     editor_->clear();
-    editor_->setPlainText(FocusRecordService::renderDiaryText(content));
-    for(const auto& line : mediaLines_){
+    QString rendered = FocusRecordService::renderDiaryText(content);
+    QStringList legacyImageMarkers;
+    for(const auto& line : parts.mediaLines){
         if(!line.startsWith("[Image]")){
+            mediaLines_.append(line);
             continue;
         }
-        const QString path = line.mid(7);
-        if(path.isEmpty()){
+        QString reference = line.mid(7).trimmed();
+        if(reference.isEmpty()){
             continue;
         }
-        images_.append(path);
-        const QString url = QUrl::fromLocalFile(path).toString();
-        editor_->insertHtml(QString("<br><img src=\"%1\" style=\"max-width:100%;\"><br>").arg(url));
+        const QFileInfo legacyInfo(reference);
+        if(legacyInfo.isAbsolute() && legacyInfo.exists()){
+            const QString imported = DiaryImageService::importImage(user_, reference);
+            if(!imported.isEmpty()){
+                reference = imported;
+            }
+        }
+        legacyImageMarkers.append(DiaryImageService::markerForImage(reference));
     }
+    if(!legacyImageMarkers.isEmpty()){
+        if(!rendered.trimmed().isEmpty()){
+            rendered.append('\n');
+        }
+        rendered.append(legacyImageMarkers.join('\n'));
+    }
+    DiaryDocumentCodec::setDiaryText(editor_, user_, rendered);
 }
 
 void DiaryTabPage::save(){
     if(!Session::instance().isLoggedIn()) return;
-    DiaryStore::save(user_, date_, FocusRecordService::composeDiaryContent(
+    const QString body = FocusRecordService::stripRenderedFocusBlock(
+        DiaryDocumentCodec::toDiaryText(editor_->document()));
+    const bool saved = DiaryStore::save(user_, date_, FocusRecordService::composeDiaryContent(
         focusLines_,
-        FocusRecordService::stripRenderedFocusBlock(editor_->toPlainText()),
+        body,
         mediaLines_));
+    if(saved){
+        deleteCloudFiles(DiaryImageService::moveUnreferencedImagesToTrash(user_));
+    }
 }
 
 void DiaryTabPage::refreshAfterFocusRecord(const QString& user, const QDate& date){
@@ -122,22 +145,27 @@ void DiaryTabPage::refreshAfterFocusRecord(const QString& user, const QDate& dat
         return;
     }
 
-    const QString currentBody = FocusRecordService::stripRenderedFocusBlock(editor_->toPlainText());
+    const QString currentBody = FocusRecordService::stripRenderedFocusBlock(
+        DiaryDocumentCodec::toDiaryText(editor_->document()));
     const DiaryContentParts stored = FocusRecordService::splitDiaryContent(DiaryStore::load(user_, date_));
     focusLines_ = stored.focusLines;
-    mediaLines_ = stored.mediaLines;
+    mediaLines_.clear();
+    for(const QString& line : stored.mediaLines){
+        if(!line.startsWith("[Image]")){
+            mediaLines_.append(line);
+        }
+    }
 
     const QString merged = FocusRecordService::composeDiaryContent(focusLines_, currentBody, mediaLines_);
-    editor_->setPlainText(FocusRecordService::renderDiaryText(merged));
+    DiaryDocumentCodec::setDiaryText(editor_, user_, FocusRecordService::renderDiaryText(merged));
 }
 
 void DiaryTabPage::insertImage(){
     const QString path = QFileDialog::getOpenFileName(this, "选择图片", QString(), "Images (*.png *.jpg *.jpeg)");
     if(path.isEmpty()) return;
-    images_.append(path);
-    mediaLines_.append(QString("[Image]%1").arg(path));
-    const QString url = QUrl::fromLocalFile(path).toString();
-    editor_->insertHtml(QString("<br><img src=\"%1\" style=\"max-width:100%;\"><br>").arg(url));
+    const QString filename = DiaryImageService::importImage(user_, path);
+    if(filename.isEmpty()) return;
+    DiaryDocumentCodec::insertImage(editor_, user_, filename);
 }
 
 void DiaryTabPage::applyFontFamily(const QFont& f){ editor_->setCurrentFont(f); }
@@ -171,4 +199,13 @@ void DiaryTabPage::openCalendar(){
         cw->deleteLater();
     });
     cw->show();
+}
+
+void DiaryTabPage::deleteCloudFiles(const QStringList& filenames){
+    if(filenames.isEmpty() || !Session::instance().isRemoteMode() || cleanupSync_ == nullptr){
+        return;
+    }
+    for(const QString& filename : filenames){
+        cleanupSync_->deleteUserFile(Session::instance().userId(), filename);
+    }
 }

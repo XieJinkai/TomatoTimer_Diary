@@ -1,6 +1,8 @@
 #pragma once
 #include <QWidget>
 #include <QDate>
+#include <QStringList>
+class CloudSyncService;
 class QLabel; class QTextEdit; class QPushButton; class QFontComboBox; class QComboBox;
 
 class DiaryTabPage : public QWidget {
@@ -12,9 +14,9 @@ private:
     QString user_{}; QDate date_{};
     QLabel* title_{}; QTextEdit* editor_{}; QPushButton* btnSave_{}; QPushButton* btnInsertImage_{}; QPushButton* btnVoice_{}; QPushButton* btnCalendar_{};
     QFontComboBox* fontBox_{}; QComboBox* sizeBox_{}; QPushButton* btnBold_{}; QPushButton* btnItalic_{};
-    QStringList images_{};
     QStringList focusLines_{};
     QStringList mediaLines_{};
+    CloudSyncService* cleanupSync_{};
     // 初始化 UI
     void setupUi();
     // 按日期加载内容
@@ -28,6 +30,7 @@ private:
     void voiceInput();
     // 打开日历窗口选择日期
     void openCalendar();
+    void deleteCloudFiles(const QStringList& filenames);
     // 字体设置与样式切换
     void applyFontFamily(const QFont&);
     void applyFontSize(int);

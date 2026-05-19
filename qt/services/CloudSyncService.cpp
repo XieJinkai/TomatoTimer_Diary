@@ -9,15 +9,22 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QSettings>
 
 #include "DataStore.h"
 
 CloudSyncService::CloudSyncService(QObject* parent)
-    : QObject(parent), manager_(new QNetworkAccessManager(this)) {}
+    : QObject(parent), manager_(new QNetworkAccessManager(this)) {
+    const QUrl savedUrl(QSettings().value("cloud/serverUrl").toString());
+    if(savedUrl.isValid() && !savedUrl.scheme().isEmpty() && !savedUrl.host().isEmpty()){
+        serverUrl_ = savedUrl;
+    }
+}
 
 void CloudSyncService::setServerUrl(const QUrl& url){
     if(url.isValid() && !url.isEmpty()){
         serverUrl_ = url;
+        QSettings().setValue("cloud/serverUrl", serverUrl_.toString());
     }
 }
 
